@@ -6,29 +6,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MovieResponse(
-    @SerialName("id") val id: Long,
-    @SerialName("title") val title: String,
-    @SerialName("year") val year: String,
-    @SerialName("runTime") val runTime: String,
-    @SerialName("genre") val genre: String,
-    @SerialName("director") val director: String,
-    @SerialName("actors") val actors: String,
-    @SerialName("plot") val plot: String,
-    @SerialName("language") val language: String,
-    @SerialName("poster") val poster: String
+    @SerialName("Title") val title: String,
+    @SerialName("Year") val year: String,
+    @SerialName("imdbID") val imdbID: String,
+    @SerialName("Poster") val poster: String
 )
 
 fun MovieResponse.toDomain() = Movie(
-    id = id,
-    title = title,
-    year = year,
-    runTime = runTime,
-    genre = genre,
-    director = director,
-    actors = actors,
-    plot = plot,
-    language = language,
-    poster = poster
+    title = title, year = year, imdbID = imdbID, poster = poster
 )
 
 fun List<MovieResponse>.toDomain(): List<Movie> {

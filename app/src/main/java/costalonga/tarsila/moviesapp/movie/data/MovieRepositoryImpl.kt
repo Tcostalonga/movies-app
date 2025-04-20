@@ -11,14 +11,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class MovieRepositoryImpl @Inject constructor(private val movieApi: MovieApi) : MovieRepository {
-    override suspend fun getAllMovies(
+    override suspend fun getMovies(
         title: String,
         type: String,
         yearOfRelease: String
     ): Result<List<Movie>> {
         return withContext(Dispatchers.IO) {
             try {
-                val searchResponse = movieApi.getAllMovies(title, type, yearOfRelease)
+                val searchResponse = movieApi.getMovies(title, type, yearOfRelease)
                 Result.success(searchResponse.search.toDomain())
             } catch (e: Exception) {
                 if (e is CancellationException) throw e

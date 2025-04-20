@@ -23,7 +23,7 @@ object MovieApiInstance {
     private val httpClient: OkHttpClient.Builder = OkHttpClient.Builder()
 
     private val loggingInterceptor = HttpLoggingInterceptor()
-        .setLevel(HttpLoggingInterceptor.Level.BASIC)
+        .setLevel(HttpLoggingInterceptor.Level.BODY)
 
     private val authenticationInterceptor = Interceptor { chain ->
         val originalRequest = chain.request()
