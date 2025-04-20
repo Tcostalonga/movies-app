@@ -1,4 +1,4 @@
-package costalonga.tarsila.moviesapp.ui.theme
+package costalonga.tarsila.moviesapp.core.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
