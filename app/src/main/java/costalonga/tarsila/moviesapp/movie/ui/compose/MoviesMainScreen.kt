@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,22 +22,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.Movie
 
 @Composable
 fun MoviesMainScreen(movies: List<Movie>, modifier: Modifier = Modifier) {
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = MoviesTheme.spacing.dp18)
     ) {
-
-        //Search view
+        // Search view futura aqui
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -51,7 +50,6 @@ fun MoviesMainScreen(movies: List<Movie>, modifier: Modifier = Modifier) {
                 )
             }
         }
-
     }
 }
 
@@ -64,8 +62,11 @@ fun MovieItem(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(6.dp),
-        shape = MoviesTheme.shapes.large
+        elevation = CardDefaults.cardElevation(MoviesTheme.spacing.dp2),
+        shape = MoviesTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = MoviesTheme.colors.surface
+        )
     ) {
         Row(
             modifier = Modifier
@@ -76,7 +77,7 @@ fun MovieItem(
                 model = posterUrl,
                 contentDescription = "Movie Poster Image",
                 modifier = Modifier
-                    .size(width = 100.dp, height = 150.dp)
+                    .size(width = 100.dp, height = 130.dp)
                     .clip(RoundedCornerShape(MoviesTheme.spacing.dp8)),
                 contentScale = ContentScale.Crop
             )
@@ -87,30 +88,34 @@ fun MovieItem(
                 Text(
                     text = title,
                     maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
+                    overflow = TextOverflow.Ellipsis, style = MoviesTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold, color = MoviesTheme.colors.primary
                     )
                 )
 
                 Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp8))
 
                 Text(
-                    text = year,
-                    style = MaterialTheme.typography.titleSmall
+                    text = year, style = MoviesTheme.typography.bodyMedium.copy(
+                        color = MoviesTheme.colors.secondary, fontWeight = FontWeight.Medium
+                    )
                 )
             }
         }
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun MainScreenPreview() {
-    val movies = listOf(
-        Movie("Interestelar", "2014", "1", "https://link.com/poster1.jpg"),
-        Movie("Duna", "2021", "2", "https://link.com/poster2.jpg"),
-        Movie("Barbie", "2023", "3", "https://link.com/poster3.jpg")
-    )
-    MoviesMainScreen(movies)
+    MoviesAppTheme {
+        Scaffold { _ ->
+            val movies = listOf(
+                Movie("Interestelar", "2014", "1", "https://link.com/poster1.jpg"),
+                Movie("Duna", "2021", "2", "https://link.com/poster2.jpg"),
+                Movie("Barbie", "2023", "3", "https://link.com/poster3.jpg")
+            )
+            MoviesMainScreen(movies)
+        }
+    }
 }

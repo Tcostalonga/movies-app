@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
                 val viewModel = hiltViewModel<MainViewModel>()
                 val uiState by viewModel.movies.collectAsStateWithLifecycle(MainUiState())
 
-                Scaffold(modifier = Modifier.Companion.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MoviesMainScreen(
                         movies = uiState.movies,
                         modifier = Modifier.padding(innerPadding)
