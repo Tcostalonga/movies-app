@@ -2,8 +2,8 @@ package costalonga.tarsila.moviesapp.movie.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import costalonga.tarsila.moviesapp.movie.domain.Movie
-import costalonga.tarsila.moviesapp.movie.domain.MovieRepository
+import costalonga.tarsila.moviesapp.movie.domain.model.Movie
+import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

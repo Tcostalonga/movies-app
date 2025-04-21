@@ -1,4 +1,4 @@
-package costalonga.tarsila.moviesapp.movie.domain
+package costalonga.tarsila.moviesapp.movie.domain.model
 
 data class Movie(
     val title: String,

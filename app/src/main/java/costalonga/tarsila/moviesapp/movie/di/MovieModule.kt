@@ -3,7 +3,7 @@ package costalonga.tarsila.moviesapp.movie.di
 import costalonga.tarsila.moviesapp.movie.data.MovieRepositoryImpl
 import costalonga.tarsila.moviesapp.movie.data.api.MovieApi
 import costalonga.tarsila.moviesapp.movie.data.api.MovieApiInstance
-import costalonga.tarsila.moviesapp.movie.domain.MovieRepository
+import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

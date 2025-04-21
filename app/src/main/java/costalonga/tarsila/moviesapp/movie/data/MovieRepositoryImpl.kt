@@ -3,8 +3,8 @@ package costalonga.tarsila.moviesapp.movie.data
 import android.util.Log
 import costalonga.tarsila.moviesapp.movie.data.api.MovieApi
 import costalonga.tarsila.moviesapp.movie.data.model.toDomain
-import costalonga.tarsila.moviesapp.movie.domain.Movie
-import costalonga.tarsila.moviesapp.movie.domain.MovieRepository
+import costalonga.tarsila.moviesapp.movie.domain.model.Movie
+import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

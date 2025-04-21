@@ -1,6 +1,6 @@
 package costalonga.tarsila.moviesapp.movie.data.model
 
-import costalonga.tarsila.moviesapp.movie.domain.Movie
+import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

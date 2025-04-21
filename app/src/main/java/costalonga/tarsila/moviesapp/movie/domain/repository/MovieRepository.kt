@@ -1,4 +1,6 @@
-package costalonga.tarsila.moviesapp.movie.domain
+package costalonga.tarsila.moviesapp.movie.domain.repository
+
+import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 
 interface MovieRepository {
 

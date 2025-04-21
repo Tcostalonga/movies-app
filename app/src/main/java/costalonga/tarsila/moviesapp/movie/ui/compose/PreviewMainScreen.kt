@@ -1,7 +1,7 @@
 package costalonga.tarsila.moviesapp.movie.ui.compose
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import costalonga.tarsila.moviesapp.movie.domain.Movie
+import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import costalonga.tarsila.moviesapp.movie.ui.MainUiState
 
 class PreviewMainScreen : PreviewParameterProvider<MainUiState> {
