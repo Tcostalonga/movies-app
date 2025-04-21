@@ -42,9 +42,20 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
         }
     }
 
+    fun onIntent(intent: MainScreenIntents) {
+        when (intent) {
+
+            is MainScreenIntents.OnSearchQueryChange -> {
+                _movies.update {
+                    it.copy(searchQuery = intent.newSearchQuery)
+                }
+            }
+        }
+    }
 }
 
 data class MainUiState(
     val isLoading: Boolean = false,
     val movies: List<Movie> = emptyList(),
+    val searchQuery: String = ""
 )

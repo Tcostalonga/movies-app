@@ -4,8 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -26,14 +24,12 @@ class MainActivity : ComponentActivity() {
                 val viewModel = hiltViewModel<MainViewModel>()
                 val uiState by viewModel.movies.collectAsStateWithLifecycle(MainUiState())
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier) { _ ->
                     MoviesMainScreen(
-                        movies = uiState.movies,
-                        modifier = Modifier.padding(innerPadding)
+                        uiState = uiState, onIntent = viewModel::onIntent, modifier = Modifier
                     )
                 }
             }
         }
-
     }
 }
