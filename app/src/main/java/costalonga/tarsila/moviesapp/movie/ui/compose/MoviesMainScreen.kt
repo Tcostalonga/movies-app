@@ -7,24 +7,26 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -32,18 +34,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import costalonga.tarsila.moviesapp.R
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
@@ -52,10 +56,16 @@ import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
 
 @Composable
 fun MoviesMainScreen(uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit, modifier: Modifier = Modifier) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val lazyColumnState = rememberLazyListState()
+    val pagerState = rememberPagerState(pageCount = { uiState.movies.size })
+
     val customTextSelectionColors = TextSelectionColors(
         handleColor = MoviesTheme.colors.outline,
         backgroundColor = MoviesTheme.colors.outline.copy(alpha = 0.4f)
     )
+
+    var showAsVerticalList by remember { mutableStateOf(true) }
 
     Column(
         modifier = modifier
@@ -116,25 +126,22 @@ fun MoviesMainScreen(uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit
             color = MoviesTheme.colors.background
 
         ) {
-            Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                ChangeVisualizationComponent(showAsVerticalList, onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
 
-                AnimatedContent(uiState.isLoading) { isLoading ->
-                    when (isLoading) {
-                        true -> PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
-                        false -> LazyColumn(
-                            modifier = Modifier
-                                .padding(horizontal = MoviesTheme.spacing.dp18),
-                            verticalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp12),
-                            contentPadding = PaddingValues(vertical = MoviesTheme.spacing.dp24)
-                        ) {
-                            items(uiState.movies, key = { it.imdbID }) { movie ->
-                                MovieItem(
-                                    title = movie.title,
-                                    year = movie.year,
-                                    posterUrl = movie.poster
-                                )
-                            }
+                if (uiState.isLoading) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
+                    }
+                } else {
+                    keyboardController?.hide()
+                    AnimatedContent(showAsVerticalList) { showAsGrid ->
+                        if (showAsGrid) {
+                            VerticalListComponent(lazyColumnState, uiState)
+                        } else {
+                            CarrouselListComponent(uiState, pagerState)
                         }
+
                     }
 
 
@@ -145,55 +152,62 @@ fun MoviesMainScreen(uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit
 }
 
 @Composable
-fun MovieItem(
-    title: String,
-    year: String,
-    posterUrl: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(MoviesTheme.spacing.dp2),
-        shape = MoviesTheme.shapes.large,
-        colors = CardDefaults.cardColors(
-            containerColor = MoviesTheme.colors.surface
-        )
+private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVerticalListChange: () -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.End, modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = MoviesTheme.spacing.dp12, horizontal = MoviesTheme.spacing.dp18)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(MoviesTheme.spacing.dp16)
-        ) {
-            AsyncImage(
-                model = posterUrl,
-                contentDescription = "Movie Poster Image",
-                modifier = Modifier
-                    .size(width = 100.dp, height = 130.dp)
-                    .clip(RoundedCornerShape(MoviesTheme.spacing.dp8)),
-                contentScale = ContentScale.Crop
+        IconButton(onClick = {
+            onShowAsVerticalListChange()
+        }) {
+            Icon(
+                tint = if (showAsVerticalList) MoviesTheme.colors.onBackground else MoviesTheme.colors.onBackground.copy(alpha = 0.3f),
+                painter = painterResource(R.drawable.ic_bulleted_list_24),
+                contentDescription = "Vertical list visualization"
             )
+        }
 
-            Spacer(modifier = Modifier.width(MoviesTheme.spacing.dp12))
-
-            Column {
-                Text(
-                    text = title,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis, style = MoviesTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold, color = MoviesTheme.colors.primary
-                    )
-                )
-
-                Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp8))
-
-                Text(
-                    text = year, style = MoviesTheme.typography.bodyMedium.copy(
-                        color = MoviesTheme.colors.secondary, fontWeight = FontWeight.Medium
-                    )
-                )
-            }
+        IconButton(onClick = {
+            onShowAsVerticalListChange()
+        }) {
+            Icon(
+                tint = if (showAsVerticalList.not()) MoviesTheme.colors.onBackground else MoviesTheme.colors.onBackground.copy(alpha = 0.3f),
+                painter = painterResource(R.drawable.ic_view_carousel_24),
+                contentDescription = "Vertical list visualization"
+            )
         }
     }
+}
+
+@Composable
+private fun VerticalListComponent(lazyColumnState: LazyListState, uiState: MainUiState) {
+    LazyColumn(
+        state = lazyColumnState,
+        modifier = Modifier
+            .padding(horizontal = MoviesTheme.spacing.dp18),
+        verticalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp12),
+        contentPadding = PaddingValues(bottom = MoviesTheme.spacing.dp32)
+    ) {
+        items(uiState.movies, key = { it.imdbID }) { movie ->
+            MovieItem(
+                title = movie.title,
+                year = movie.year,
+                posterUrl = movie.poster
+            )
+        }
+    }
+}
+
+@Composable
+private fun CarrouselListComponent(uiState: MainUiState, pagerState: PagerState) {
+    ListCarrouselComponent(
+        uiState.movies,
+        pagerState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.8f),
+    )
 }
 
 @PreviewLightDark
