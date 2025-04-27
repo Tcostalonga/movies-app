@@ -72,5 +72,6 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     implementation(libs.coil)
+    implementation(libs.kotlin.datetime)
 
 }

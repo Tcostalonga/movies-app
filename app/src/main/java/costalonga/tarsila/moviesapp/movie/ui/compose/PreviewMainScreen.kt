@@ -7,7 +7,7 @@ import costalonga.tarsila.moviesapp.movie.ui.MainUiState
 class PreviewMainScreen : PreviewParameterProvider<MainUiState> {
     override val values: Sequence<MainUiState>
         get() = sequenceOf(
-            MainUiState(isLoading = true, movies = movies, searchQuery = "harry potter")
+            MainUiState(isLoading = true, movies = movies, searchQuery = "")
         )
 }
 
