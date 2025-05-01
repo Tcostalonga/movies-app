@@ -47,15 +47,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import costalonga.tarsila.moviesapp.R
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
 import costalonga.tarsila.moviesapp.movie.ui.MainUiState
+import costalonga.tarsila.moviesapp.movie.ui.MainViewModel
 import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
 
 @Composable
-fun MoviesMainScreen(uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit, modifier: Modifier = Modifier) {
+fun MoviesMainScreenRoot(modifier: Modifier = Modifier) {
+    val viewModel = hiltViewModel<MainViewModel>()
+    val uiState by viewModel.movies.collectAsStateWithLifecycle()
+
+    MoviesMainScreen(uiState, viewModel::onIntent, modifier)
+}
+
+@Composable
+private fun MoviesMainScreen(
+    uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit, modifier: Modifier = Modifier
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val lazyColumnState = rememberLazyListState()
     val pagerState = rememberPagerState(pageCount = { uiState.movies.size })
@@ -67,84 +80,81 @@ fun MoviesMainScreen(uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit
 
     var showAsVerticalList by remember { mutableStateOf(true) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MoviesTheme.colors.primary)
-            .statusBarsPadding()
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(vertical = MoviesTheme.spacing.dp24)
+    Scaffold(modifier = Modifier) { _ ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(MoviesTheme.colors.primary)
+                .statusBarsPadding()
         ) {
-            CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
-                OutlinedTextField(
-                    value = uiState.searchQuery,
-                    onValueChange = {
-                        onIntent(MainScreenIntents.OnSearchQueryChange(it))
-                    },
-                    placeholder = {
-                        Text(text = "Search Movies")
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = MoviesTheme.colors.onBackground.copy(alpha = 0.7f)
-                        )
-                    },
-                    shape = MoviesTheme.shapes.large,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = MoviesTheme.spacing.dp18),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        cursorColor = MoviesTheme.colors.outline,
-                        focusedTextColor = MoviesTheme.colors.onBackground,
-                        unfocusedTextColor = MoviesTheme.colors.onBackground,
-                        focusedBorderColor = MoviesTheme.colors.outline,
-                        unfocusedBorderColor = MoviesTheme.colors.secondary,
-                        unfocusedContainerColor = MoviesTheme.colors.background,
-                        focusedContainerColor = MoviesTheme.colors.background
-                    ),
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done
-                    ),
-                )
+            Box(
+                modifier = Modifier
+                    .padding(vertical = MoviesTheme.spacing.dp24)
+            ) {
+                CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
+                    OutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = {
+                            onIntent(MainScreenIntents.OnSearchQueryChange(it))
+                        },
+                        placeholder = {
+                            Text(text = "Search Movies")
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = MoviesTheme.colors.onBackground.copy(alpha = 0.7f)
+                            )
+                        },
+                        shape = MoviesTheme.shapes.large,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = MoviesTheme.spacing.dp18),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            cursorColor = MoviesTheme.colors.outline,
+                            focusedTextColor = MoviesTheme.colors.onBackground,
+                            unfocusedTextColor = MoviesTheme.colors.onBackground,
+                            focusedBorderColor = MoviesTheme.colors.outline,
+                            unfocusedBorderColor = MoviesTheme.colors.secondary,
+                            unfocusedContainerColor = MoviesTheme.colors.background,
+                            focusedContainerColor = MoviesTheme.colors.background
+                        ),
+                        maxLines = 1,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                    )
+                }
             }
-        }
 
-        Surface(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize(),
-            shape = RoundedCornerShape(
-                topStart = MoviesTheme.spacing.dp24,
-                topEnd = MoviesTheme.spacing.dp24
-            ),
-            color = MoviesTheme.colors.background
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize(),
+                shape = RoundedCornerShape(
+                    topStart = MoviesTheme.spacing.dp24,
+                    topEnd = MoviesTheme.spacing.dp24
+                ),
+                color = MoviesTheme.colors.background
 
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ChangeVisualizationComponent(showAsVerticalList, onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    ChangeVisualizationComponent(showAsVerticalList, onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
 
-                if (uiState.isLoading) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    if (uiState.isLoading) {
                         PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
-                    }
-                } else {
-                    keyboardController?.hide()
-                    AnimatedContent(showAsVerticalList) { showAsGrid ->
-                        if (showAsGrid) {
-                            VerticalListComponent(lazyColumnState, uiState)
-                        } else {
-                            CarrouselListComponent(uiState, pagerState)
+                    } else {
+                        AnimatedContent(showAsVerticalList) { showAsGrid ->
+                            if (showAsGrid) {
+                                VerticalListComponent(lazyColumnState, uiState)
+                            } else {
+                                CarrouselListComponent(uiState, pagerState)
+                            }
+
                         }
-
                     }
-
-
                 }
             }
         }

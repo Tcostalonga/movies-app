@@ -37,7 +37,7 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
             }
             result.onFailure {
                 _movies.update {
-                    it.copy(isLoading = false)
+                    it.copy(isLoading = false, movies = emptyList())
                 }
             }
         }
