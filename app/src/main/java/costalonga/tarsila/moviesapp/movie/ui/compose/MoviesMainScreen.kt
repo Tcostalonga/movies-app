@@ -43,14 +43,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import costalonga.tarsila.moviesapp.R
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
+import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
 import costalonga.tarsila.moviesapp.movie.ui.MainUiState
 import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
@@ -61,11 +64,15 @@ data object MainScreen
 
 @Composable
 fun MoviesMainScreen(
-    uiState: MainUiState, onIntent: (MainScreenIntents) -> Unit, modifier: Modifier = Modifier
+    movies: List<Movie>,
+    isLoading: Boolean,
+    isError: Boolean,
+    searchQuery: String,
+    onIntent: (MainScreenIntents) -> Unit, modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val lazyColumnState = rememberLazyListState()
-    val pagerState = rememberPagerState(pageCount = { uiState.movies.size })
+    val pagerState = rememberPagerState(pageCount = { movies.size })
 
     val customTextSelectionColors = TextSelectionColors(
         handleColor = MoviesTheme.colors.outline,
@@ -74,8 +81,8 @@ fun MoviesMainScreen(
 
     var showAsVerticalList by remember { mutableStateOf(true) }
 
-    LaunchedEffect(uiState.isLoading) {
-        if (uiState.isLoading) {
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
             lazyColumnState.scrollToItem(0)
             pagerState.scrollToPage(0)
         }
@@ -92,7 +99,7 @@ fun MoviesMainScreen(
         ) {
             CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
                 OutlinedTextField(
-                    value = uiState.searchQuery,
+                    value = searchQuery,
                     onValueChange = {
                         onIntent(MainScreenIntents.OnSearchQueryChange(it))
                     },
@@ -140,18 +147,36 @@ fun MoviesMainScreen(
 
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ChangeVisualizationComponent(showAsVerticalList, onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
+                ChangeVisualizationComponent(
+                    showAsVerticalList = showAsVerticalList,
+                    onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
 
-                if (uiState.isLoading) {
-                    PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
-                } else {
-                    AnimatedContent(showAsVerticalList) { showAsGrid ->
-                        if (showAsGrid) {
-                            VerticalListComponent(lazyColumnState, uiState)
-                        } else {
-                            CarrouselListComponent(uiState, pagerState)
+                when {
+                    isLoading -> {
+                        PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
+                    }
+
+                    isError && searchQuery.isNotEmpty() -> {
+                        Text(stringResource(R.string.error_movie_not_found), style = MoviesTheme.typography.titleLarge)
+                    }
+
+                    movies.isNotEmpty() -> {
+                        AnimatedContent(showAsVerticalList) { showAsGrid ->
+                            if (showAsGrid) {
+                                VerticalListComponent(lazyColumnState, movies)
+                            } else {
+                                CarrouselListComponent(movies, pagerState)
+                            }
+
                         }
+                    }
 
+                    searchQuery.isEmpty() -> {
+                        Text(
+                            stringResource(R.string.text_start_by_typing_a_title),
+                            style = MoviesTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
@@ -170,7 +195,12 @@ private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVe
             onShowAsVerticalListChange()
         }) {
             Icon(
-                tint = if (showAsVerticalList) MoviesTheme.colors.onBackground else MoviesTheme.colors.onBackground.copy(alpha = 0.3f),
+                tint =
+                    if (showAsVerticalList) {
+                        MoviesTheme.colors.onBackground
+                    } else {
+                        MoviesTheme.colors.onBackground.copy(alpha = 0.3f)
+                    },
                 painter = painterResource(R.drawable.ic_bulleted_list_24),
                 contentDescription = "Vertical list visualization"
             )
@@ -180,7 +210,12 @@ private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVe
             onShowAsVerticalListChange()
         }) {
             Icon(
-                tint = if (showAsVerticalList.not()) MoviesTheme.colors.onBackground else MoviesTheme.colors.onBackground.copy(alpha = 0.3f),
+                tint =
+                    if (showAsVerticalList.not()) {
+                        MoviesTheme.colors.onBackground
+                    } else {
+                        MoviesTheme.colors.onBackground.copy(alpha = 0.3f)
+                    },
                 painter = painterResource(R.drawable.ic_view_carousel_24),
                 contentDescription = "Vertical list visualization"
             )
@@ -189,7 +224,7 @@ private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVe
 }
 
 @Composable
-private fun VerticalListComponent(lazyColumnState: LazyListState, uiState: MainUiState) {
+private fun VerticalListComponent(lazyColumnState: LazyListState, movies: List<Movie>) {
     LazyColumn(
         state = lazyColumnState,
         modifier = Modifier
@@ -197,7 +232,7 @@ private fun VerticalListComponent(lazyColumnState: LazyListState, uiState: MainU
         verticalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp12),
         contentPadding = PaddingValues(bottom = MoviesTheme.spacing.dp32)
     ) {
-        items(uiState.movies, key = { it.imdbID }) { movie ->
+        items(movies, key = { it.imdbID }) { movie ->
             MovieItem(
                 title = movie.title,
                 year = movie.year,
@@ -208,9 +243,9 @@ private fun VerticalListComponent(lazyColumnState: LazyListState, uiState: MainU
 }
 
 @Composable
-private fun CarrouselListComponent(uiState: MainUiState, pagerState: PagerState) {
+private fun CarrouselListComponent(movies: List<Movie>, pagerState: PagerState) {
     ListCarrouselComponent(
-        uiState.movies,
+        movies,
         pagerState,
         modifier = Modifier
             .fillMaxWidth()
@@ -225,7 +260,13 @@ private fun MainScreenPreview(
 ) {
     MoviesAppTheme {
         Scaffold { _ ->
-            MoviesMainScreen(uiState, {})
+            MoviesMainScreen(
+                movies = uiState.movies,
+                isLoading = uiState.isLoading,
+                isError = uiState.isError,
+                searchQuery = uiState.searchQuery,
+                onIntent = {},
+            )
         }
     }
 }

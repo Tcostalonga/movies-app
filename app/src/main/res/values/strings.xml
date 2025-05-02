@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MoviesApp</string>
+    <string name="error_movie_not_found">No movie found</string>
+    <string name="text_start_by_typing_a_title">Looking for a movie?\nStart by typing a movie title in the search bar</string>
 </resources>

@@ -26,18 +26,18 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
         job.cancel()
         job = viewModelScope.launch {
             _movies.update {
-                it.copy(isLoading = true)
+                it.copy(isLoading = true, isError = false)
             }
-            delay(1500)
+            delay(1300)
             val result = movieRepository.getMovies(title, type, yearOfRelease)
             result.onSuccess { listOfMovies ->
                 _movies.update {
-                    it.copy(isLoading = false, movies = listOfMovies)
+                    it.copy(isLoading = false, movies = listOfMovies, isError = false)
                 }
             }
             result.onFailure {
                 _movies.update {
-                    it.copy(isLoading = false, movies = emptyList())
+                    it.copy(isLoading = false, movies = emptyList(), isError = true)
                 }
             }
         }
@@ -58,6 +58,7 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
 
 data class MainUiState(
     val isLoading: Boolean = false,
+    val isError: Boolean = false,
     val movies: List<Movie> = emptyList(),
     val searchQuery: String = "",
 )

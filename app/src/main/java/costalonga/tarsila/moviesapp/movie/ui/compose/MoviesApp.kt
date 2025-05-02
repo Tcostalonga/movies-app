@@ -23,7 +23,7 @@ fun MoviesApp() {
 
         NavHost(navController = navController, startDestination = MainScreen) {
             composable<MainScreen> {
-                MoviesMainScreen(uiState, viewModel::onIntent)
+                MoviesMainScreen(uiState.movies, uiState.isLoading, uiState.isError, uiState.searchQuery, viewModel::onIntent)
             }
 
             /*            composable<DetailScreen> {
