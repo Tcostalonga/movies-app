@@ -3,6 +3,7 @@ activityCompose = "1.10.1"
 agp = "8.9.1"
 androidx-hilt-navigation = "1.2.0"
 composeBom = "2024.09.00"
+compose-navigation = "2.8.9"
 coil = "2.5.0"
 coreKtx = "1.15.0"
 espressoCore = "3.6.1"
@@ -36,6 +37,7 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 hilt-core = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt-navigation" }
+compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "compose-navigation" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-converter-kotlinserialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
