@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package costalonga.tarsila.moviesapp.movie.ui.compose
 
 import androidx.compose.animation.AnimatedContent
@@ -15,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -50,13 +51,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import costalonga.tarsila.moviesapp.R
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
 import costalonga.tarsila.moviesapp.movie.ui.MainUiState
+import costalonga.tarsila.moviesapp.movie.ui.SearchParams
 import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -64,15 +73,13 @@ data object MainScreen
 
 @Composable
 fun MoviesMainScreen(
-    movies: List<Movie>,
-    isLoading: Boolean,
-    isError: Boolean,
-    searchQuery: String,
+    movies: LazyPagingItems<Movie>?,
+    searchParams: SearchParams,
     onIntent: (MainScreenIntents) -> Unit, modifier: Modifier = Modifier
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val lazyColumnState = rememberLazyListState()
-    val pagerState = rememberPagerState(pageCount = { movies.size })
+    val pagerState = rememberPagerState(pageCount = { movies?.itemCount ?: 0 })
 
     val customTextSelectionColors = TextSelectionColors(
         handleColor = MoviesTheme.colors.outline,
@@ -81,12 +88,14 @@ fun MoviesMainScreen(
 
     var showAsVerticalList by remember { mutableStateOf(true) }
 
-    LaunchedEffect(isLoading) {
+    LaunchedEffect(movies?.loadState?.refresh) {
+        val isLoading = movies?.loadState?.refresh is LoadState.Loading
         if (isLoading) {
             lazyColumnState.scrollToItem(0)
             pagerState.scrollToPage(0)
         }
     }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -99,7 +108,7 @@ fun MoviesMainScreen(
         ) {
             CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
                 OutlinedTextField(
-                    value = searchQuery,
+                    value = searchParams.query,
                     onValueChange = {
                         onIntent(MainScreenIntents.OnSearchQueryChange(it))
                     },
@@ -151,32 +160,35 @@ fun MoviesMainScreen(
                     showAsVerticalList = showAsVerticalList,
                     onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
 
-                when {
-                    isLoading -> {
-                        PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
-                    }
-
-                    isError && searchQuery.isNotEmpty() -> {
-                        Text(stringResource(R.string.error_movie_not_found), style = MoviesTheme.typography.titleLarge)
-                    }
-
-                    movies.isNotEmpty() -> {
-                        AnimatedContent(showAsVerticalList) { showAsGrid ->
-                            if (showAsGrid) {
-                                VerticalListComponent(lazyColumnState, movies)
-                            } else {
-                                CarrouselListComponent(movies, pagerState)
-                            }
-
+                if (movies == null || searchParams.query.isEmpty()) {
+                    Text(
+                        stringResource(R.string.text_start_by_typing_a_title),
+                        style = MoviesTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    when (movies.loadState.refresh) {
+                        is LoadState.Loading -> {
+                            PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
                         }
-                    }
 
-                    searchQuery.isEmpty() -> {
-                        Text(
-                            stringResource(R.string.text_start_by_typing_a_title),
-                            style = MoviesTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center
-                        )
+                        is LoadState.Error -> {
+                            Text(
+                                stringResource(R.string.error_movie_not_found),
+                                style = MoviesTheme.typography.titleMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        is LoadState.NotLoading -> {
+                            AnimatedContent(showAsVerticalList) { showAsGrid ->
+                                if (showAsGrid) {
+                                    VerticalListComponent(lazyColumnState, movies)
+                                } else {
+                                    CarrouselListComponent(movies, pagerState)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -224,7 +236,7 @@ private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVe
 }
 
 @Composable
-private fun VerticalListComponent(lazyColumnState: LazyListState, movies: List<Movie>) {
+private fun VerticalListComponent(lazyColumnState: LazyListState, movies: LazyPagingItems<Movie>) {
     LazyColumn(
         state = lazyColumnState,
         modifier = Modifier
@@ -232,18 +244,20 @@ private fun VerticalListComponent(lazyColumnState: LazyListState, movies: List<M
         verticalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp12),
         contentPadding = PaddingValues(bottom = MoviesTheme.spacing.dp32)
     ) {
-        items(movies, key = { it.imdbID }) { movie ->
-            MovieItem(
-                title = movie.title,
-                year = movie.year,
-                posterUrl = movie.poster
-            )
+        items(movies.itemCount, key = movies.itemKey { it.imdbID }) { index ->
+            movies[index]?.let { movie ->
+                MovieItem(
+                    title = movie.title,
+                    year = movie.year,
+                    posterUrl = movie.poster
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun CarrouselListComponent(movies: List<Movie>, pagerState: PagerState) {
+private fun CarrouselListComponent(movies: LazyPagingItems<Movie>, pagerState: PagerState) {
     ListCarrouselComponent(
         movies,
         pagerState,
@@ -261,10 +275,8 @@ private fun MainScreenPreview(
     MoviesAppTheme {
         Scaffold { _ ->
             MoviesMainScreen(
-                movies = uiState.movies,
-                isLoading = uiState.isLoading,
-                isError = uiState.isError,
-                searchQuery = uiState.searchQuery,
+                movies = emptyFlow<PagingData<Movie>>().collectAsLazyPagingItems(),
+                searchParams = SearchParams(),
                 onIntent = {},
             )
         }

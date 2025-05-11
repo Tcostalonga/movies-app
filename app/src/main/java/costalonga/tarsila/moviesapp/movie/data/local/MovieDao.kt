@@ -18,7 +18,7 @@ interface MovieDao {
     suspend fun clearAll()
 
     @Query("SELECT COUNT(*) FROM movie_entity")
-    suspend fun getAll(): Int
+    suspend fun countAll(): Int
 
 
 }

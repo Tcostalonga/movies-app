@@ -1,15 +1,20 @@
+@file:OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+
 package costalonga.tarsila.moviesapp.movie.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import costalonga.tarsila.moviesapp.movie.domain.model.Movie
+import androidx.paging.cachedIn
 import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -20,45 +25,41 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
     private val _movies = MutableStateFlow(MainUiState())
     val movies = _movies.asStateFlow()
 
-    var job: Job = Job()
-
-    fun getMovies(title: String, type: String, yearOfRelease: String) {
-        job.cancel()
-        job = viewModelScope.launch {
-            _movies.update {
-                it.copy(isLoading = true, isError = false)
-            }
-            delay(1300)
-            val result = movieRepository.getMovies(title, type, yearOfRelease)
-            result.onSuccess { listOfMovies ->
-                _movies.update {
-                    it.copy(isLoading = false, movies = listOfMovies, isError = false)
-                }
-            }
-            result.onFailure {
-                _movies.update {
-                    it.copy(isLoading = false, movies = emptyList(), isError = true)
-                }
-            }
+    val getCachedMovies = _movies
+        .map { it.searchParams }
+        .debounce(1300)
+        .flatMapLatest { params ->
+            val flow = movieRepository.getMoviesFlow(params.query, params.type, params.yearOfRelease)
+            flow
         }
-    }
+        .cachedIn(viewModelScope)
 
     fun onIntent(intent: MainScreenIntents) {
         when (intent) {
             is MainScreenIntents.OnSearchQueryChange -> {
                 _movies.update {
-                    it.copy(searchQuery = intent.newSearchQuery)
+                    it.copy(
+                        searchParams = SearchParams(query = intent.newSearchQuery, type = "movie", yearOfRelease = ""),
+                        showInitialState = false
+                    )
                 }
-                getMovies(title = intent.newSearchQuery, type = "movie", yearOfRelease = "")
             }
-
         }
     }
+
+    fun clearDatabase() =
+        viewModelScope.launch {
+            movieRepository.clearDatabase()
+        }
 }
 
 data class MainUiState(
-    val isLoading: Boolean = false,
-    val isError: Boolean = false,
-    val movies: List<Movie> = emptyList(),
-    val searchQuery: String = "",
+    val showInitialState: Boolean = true,
+    val searchParams: SearchParams = SearchParams(),
+)
+
+data class SearchParams(
+    val query: String = "",
+    val type: String = "",
+    val yearOfRelease: String = ""
 )

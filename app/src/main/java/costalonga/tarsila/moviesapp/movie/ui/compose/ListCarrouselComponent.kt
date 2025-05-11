@@ -4,7 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -29,15 +30,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.util.lerp
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import costalonga.tarsila.moviesapp.movie.ui.MainUiState
 import kotlin.math.absoluteValue
+import kotlinx.coroutines.flow.emptyFlow
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ListCarrouselComponent(movies: List<Movie>, pagerState: PagerState, modifier: Modifier = Modifier) {
+fun ListCarrouselComponent(movies: LazyPagingItems<Movie>, pagerState: PagerState, modifier: Modifier = Modifier) {
 
     val pageOffset = pagerState.getOffsetDistanceInPages(pagerState.currentPage).absoluteValue
     val fling = PagerDefaults.flingBehavior(state = pagerState, pagerSnapDistance = PagerSnapDistance.atMost(5))
@@ -45,17 +51,20 @@ fun ListCarrouselComponent(movies: List<Movie>, pagerState: PagerState, modifier
     Column {
         HorizontalPager(state = pagerState, flingBehavior = fling, modifier = modifier) { index ->
             val movie = movies[index]
-            MovieItemCarrousel(movie = movie, pageOffset, modifier = Modifier)
+            movie?.let {
+                MovieItemCarrousel(movie = movie, pageOffset, modifier = Modifier)
+            }
         }
 
-        Row(
+        FlowRow(
             Modifier
                 .fillMaxWidth()
-                .padding(top = MoviesTheme.spacing.dp48),
+                .padding(top = MoviesTheme.spacing.dp48)
+                .padding(horizontal = MoviesTheme.spacing.dp18),
             horizontalArrangement = Arrangement.Center
         ) {
-            repeat(pagerState.pageCount) { iteration ->
-                val color = if (pagerState.currentPage == iteration) {
+            repeat(3) { iteration ->
+                val color = if (iteration == 0) {
                     MoviesTheme.colors.outline
                 } else {
                     MoviesTheme.colors.surface
@@ -120,7 +129,10 @@ private fun ListCarrouselComponentPreview(
 ) {
     MoviesAppTheme {
         Surface {
-            ListCarrouselComponent(uiState.movies, rememberPagerState(pageCount = { 1 }))
+            ListCarrouselComponent(
+                movies = emptyFlow<PagingData<Movie>>().collectAsLazyPagingItems(),
+                rememberPagerState(pageCount = { 1 })
+            )
         }
     }
 }
