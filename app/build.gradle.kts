@@ -75,4 +75,12 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.kotlin.datetime)
 
+    //Paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
+    //Room
+    implementation(libs.room.core)
+    implementation(libs.room.paging)
+    ksp(libs.room.compiler)
 }

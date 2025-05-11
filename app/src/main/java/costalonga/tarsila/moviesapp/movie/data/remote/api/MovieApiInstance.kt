@@ -1,4 +1,4 @@
-package costalonga.tarsila.moviesapp.movie.data.api
+package costalonga.tarsila.moviesapp.movie.data.remote.api
 
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
