@@ -12,6 +12,7 @@ import costalonga.tarsila.moviesapp.movie.data.local.MovieDatabase
 import costalonga.tarsila.moviesapp.movie.data.local.toDomain
 import costalonga.tarsila.moviesapp.movie.data.remote.api.MovieApi
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
+import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
 import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -24,13 +25,11 @@ class MovieRepositoryImpl @Inject constructor(
 ) : MovieRepository {
 
     override fun getMoviesFlow(
-        title: String,
-        type: String,
-        yearOfRelease: String
+        params: SearchParams
     ): Flow<PagingData<Movie>> {
         return Pager(
             config = PagingConfig(pageSize = 10),
-            remoteMediator = MovieRemoteMediator(title, type, yearOfRelease, movieDatabase, movieApi),
+            remoteMediator = MovieRemoteMediator(params, movieDatabase, movieApi),
             pagingSourceFactory = {
                 movieDatabase.movieDao.getMoviesPagingSource()
             }

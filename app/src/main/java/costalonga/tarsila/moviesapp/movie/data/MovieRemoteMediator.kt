@@ -12,13 +12,12 @@ import costalonga.tarsila.moviesapp.movie.data.local.MovieDatabase
 import costalonga.tarsila.moviesapp.movie.data.local.MovieEntity
 import costalonga.tarsila.moviesapp.movie.data.local.toEntity
 import costalonga.tarsila.moviesapp.movie.data.remote.api.MovieApi
-import kotlinx.coroutines.CancellationException
+import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 
 class MovieRemoteMediator(
-    private val title: String,
-    private val type: String,
-    private val year: String,
+    private val params: SearchParams,
     private val movieDatabase: MovieDatabase,
     private val movieApi: MovieApi
 ) : RemoteMediator<Int, MovieEntity>() {
@@ -30,8 +29,12 @@ class MovieRemoteMediator(
         state: PagingState<Int, MovieEntity>
     ): MediatorResult {
         return try {
-            if (title.isEmpty()) {
+            if (params.showRemoteData) {
                 movieDao.clearAll()
+                return MediatorResult.Success(true)
+            }
+
+            if (params.showCache) {
                 return MediatorResult.Success(true)
             }
 
@@ -48,7 +51,7 @@ class MovieRemoteMediator(
                     (lastItemCount / state.config.pageSize) + 1
                 }
             }
-            val data = movieApi.getMovies(title, type, year, loadKey)
+            val data = movieApi.getMovies(params.query, params.type, params.yearOfRelease, loadKey)
             val totalResults = data.totalResults
             Log.d("MovieRemoteMediator", "totalResults: $totalResults")
 
@@ -67,6 +70,7 @@ class MovieRemoteMediator(
             )
         } catch (e: Exception) {
             if (e is CancellationException) throw e
+            movieDao.clearAll()
             MediatorResult.Error(e)
         }
     }

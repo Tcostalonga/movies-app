@@ -60,9 +60,9 @@ import costalonga.tarsila.moviesapp.R
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
+import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
 import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
 import costalonga.tarsila.moviesapp.movie.ui.MainUiState
-import costalonga.tarsila.moviesapp.movie.ui.SearchParams
 import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -160,7 +160,7 @@ fun MoviesMainScreen(
                     showAsVerticalList = showAsVerticalList,
                     onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList })
 
-                if (movies == null || searchParams.query.isEmpty()) {
+                if (movies == null || searchParams.showRemoteData) {
                     Text(
                         stringResource(R.string.text_start_by_typing_a_title),
                         style = MoviesTheme.typography.titleMedium,
@@ -181,11 +181,13 @@ fun MoviesMainScreen(
                         }
 
                         is LoadState.NotLoading -> {
-                            AnimatedContent(showAsVerticalList) { showAsGrid ->
-                                if (showAsGrid) {
-                                    VerticalListComponent(lazyColumnState, movies)
-                                } else {
-                                    CarrouselListComponent(movies, pagerState)
+                            if (movies.itemCount >= 1) {
+                                AnimatedContent(showAsVerticalList) { showAsGrid ->
+                                    if (showAsGrid) {
+                                        VerticalListComponent(lazyColumnState, movies)
+                                    } else {
+                                        CarrouselListComponent(movies, pagerState)
+                                    }
                                 }
                             }
                         }

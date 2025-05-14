@@ -5,6 +5,7 @@ package costalonga.tarsila.moviesapp.movie.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
 import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
 @HiltViewModel
 class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : ViewModel() {
 
@@ -29,7 +29,7 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
         .map { it.searchParams }
         .debounce(1300)
         .flatMapLatest { params ->
-            val flow = movieRepository.getMoviesFlow(params.query, params.type, params.yearOfRelease)
+            val flow = movieRepository.getMoviesFlow(params)
             flow
         }
         .cachedIn(viewModelScope)
@@ -56,10 +56,4 @@ class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : 
 data class MainUiState(
     val showInitialState: Boolean = true,
     val searchParams: SearchParams = SearchParams(),
-)
-
-data class SearchParams(
-    val query: String = "",
-    val type: String = "",
-    val yearOfRelease: String = ""
 )
