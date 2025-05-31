@@ -59,7 +59,7 @@ fun ListCarrouselComponent(movies: LazyPagingItems<Movie>, pagerState: PagerStat
         FlowRow(
             Modifier
                 .fillMaxWidth()
-                .padding(top = MoviesTheme.spacing.dp48)
+                .padding(top = MoviesTheme.spacing.dp40)
                 .padding(horizontal = MoviesTheme.spacing.dp18),
             horizontalArrangement = Arrangement.Center
         ) {
