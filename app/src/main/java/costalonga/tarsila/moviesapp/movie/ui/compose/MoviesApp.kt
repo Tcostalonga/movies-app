@@ -76,7 +76,7 @@ fun MoviesApp() {
         topBar = {
             MainScreenTopAppBar(
                 showAsVerticalList = showAsVerticalList,
-                onShowAsVerticalListChange = { showAsVerticalList = !showAsVerticalList }
+                onShowAsVerticalListChange = { showAsVerticalList = it }
             )
         },
         floatingActionButton = {

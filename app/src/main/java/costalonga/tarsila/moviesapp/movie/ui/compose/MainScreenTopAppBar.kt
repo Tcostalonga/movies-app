@@ -15,7 +15,7 @@ import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 
 @Composable
-fun MainScreenTopAppBar(showAsVerticalList: Boolean, onShowAsVerticalListChange: () -> Unit) {
+fun MainScreenTopAppBar(showAsVerticalList: Boolean, onShowAsVerticalListChange: (Boolean) -> Unit) {
     TopAppBar(
         title = {},
         actions = {
@@ -29,9 +29,9 @@ fun MainScreenTopAppBar(showAsVerticalList: Boolean, onShowAsVerticalListChange:
 }
 
 @Composable
-private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVerticalListChange: () -> Unit) {
+private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVerticalListChange: (Boolean) -> Unit) {
     IconButton(onClick = {
-        onShowAsVerticalListChange()
+        onShowAsVerticalListChange(true)
     }) {
         Icon(
             tint =
@@ -46,7 +46,7 @@ private fun ChangeVisualizationComponent(showAsVerticalList: Boolean, onShowAsVe
     }
 
     IconButton(onClick = {
-        onShowAsVerticalListChange()
+        onShowAsVerticalListChange(false)
     }) {
         Icon(
             tint =
