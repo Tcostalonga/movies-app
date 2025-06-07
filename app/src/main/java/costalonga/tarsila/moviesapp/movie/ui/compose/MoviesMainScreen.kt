@@ -32,7 +32,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -56,6 +60,7 @@ import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
 import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
 import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -70,8 +75,12 @@ fun MoviesMainScreen(
     onIntent: (MainScreenIntents) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { movies?.itemCount ?: 0 })
     val focusManager = LocalFocusManager.current
+
+    var savedIndex by rememberSaveable { mutableIntStateOf(0) }
+    var savedOffset by rememberSaveable { mutableIntStateOf(0) }
 
     val shouldHideTheKeyboard by remember {
         derivedStateOf {
@@ -88,6 +97,14 @@ fun MoviesMainScreen(
         if (isLoading) {
             lazyColumnState.scrollToItem(0)
             pagerState.scrollToPage(0)
+        }
+    }
+
+    LaunchedEffect(showAsVerticalList) {
+        if (showAsVerticalList) {
+            scope.launch {
+                lazyColumnState.scrollToItem(savedIndex, savedOffset)
+            }
         }
     }
 
@@ -182,6 +199,10 @@ fun MoviesMainScreen(
                         if (showAsVerticalList) {
                             verticalListComponent(movies)
                         } else {
+                            if (lazyColumnState.firstVisibleItemIndex != 0 && lazyColumnState.firstVisibleItemScrollOffset != 0) {
+                                savedIndex = lazyColumnState.firstVisibleItemIndex
+                                savedOffset = lazyColumnState.firstVisibleItemScrollOffset
+                            }
                             carrouselListComponent(movies, pagerState)
                         }
                     }

@@ -57,7 +57,6 @@ fun MoviesApp() {
     }
 
     DisposableEffect(lifecycleOwner) {
-
         val lifecycleObserver = object : DefaultLifecycleObserver {
             override fun onCreate(owner: LifecycleOwner) {
                 super.onCreate(owner)

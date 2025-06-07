@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class MainViewModel @Inject constructor(val movieRepository: MovieRepository) : ViewModel() {
+class MainViewModel @Inject constructor(private val movieRepository: MovieRepository) : ViewModel() {
 
     private val _movies = MutableStateFlow(MainUiState())
     val movies = _movies.asStateFlow()
