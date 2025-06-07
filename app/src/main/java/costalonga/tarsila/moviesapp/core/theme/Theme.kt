@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 
 val DarkColorScheme = darkColorScheme(
+    primaryContainer = DarkTertiary,
     primary = DarkPrimary,
     onPrimary = DarkOnPrimary,
     secondary = DarkSecondary,
@@ -26,6 +27,7 @@ val DarkColorScheme = darkColorScheme(
 )
 
 val LightColorScheme = lightColorScheme(
+    primaryContainer = LightTertiary,
     primary = LightPrimary,
     onPrimary = LightOnPrimary,
     secondary = LightSecondary,
