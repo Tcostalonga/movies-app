@@ -11,7 +11,10 @@ import androidx.paging.map
 import costalonga.tarsila.moviesapp.movie.data.local.MovieDatabase
 import costalonga.tarsila.moviesapp.movie.data.local.toDomain
 import costalonga.tarsila.moviesapp.movie.data.remote.api.MovieApi
+import costalonga.tarsila.moviesapp.movie.data.remote.mappers.toDomain
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
+import costalonga.tarsila.moviesapp.movie.domain.model.MovieDetail
+import costalonga.tarsila.moviesapp.movie.domain.model.Plot
 import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
 import costalonga.tarsila.moviesapp.movie.domain.repository.MovieRepository
 import javax.inject.Inject
@@ -42,6 +45,15 @@ class MovieRepositoryImpl @Inject constructor(
             .catch {
                 Log.e("MovieRepositoryImpl", "Error fetching from db: Cause: ${it.cause} --- Message: ${it.message}")
             }
+    }
+
+    override suspend fun getMovieById(imdbID: String): MovieDetail {
+        return try {
+            movieApi.getMovieById(imdbID, Plot.SHORT.name).toDomain()
+        } catch (e: Exception) {
+            Log.e("MovieRepositoryImpl", "Error fetching movie by id: Cause: ${e.cause} --- Message: ${e.message}")
+            throw e
+        }
     }
 
     override suspend fun clearDatabase() {
