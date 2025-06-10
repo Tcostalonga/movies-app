@@ -1,11 +1,11 @@
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.paging.LoadState
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
-import costalonga.tarsila.moviesapp.movie.ui.MainUiState
+import costalonga.tarsila.moviesapp.movie.ui.main.MainUiState
 
 
 internal class MoviePagingDataPreviewParameter : PreviewParameterProvider<PagingData<Movie>> {

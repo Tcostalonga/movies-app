@@ -1,4 +1,4 @@
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

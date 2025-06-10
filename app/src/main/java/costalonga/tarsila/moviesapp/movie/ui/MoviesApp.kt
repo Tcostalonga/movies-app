@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
@@ -32,7 +32,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import costalonga.tarsila.moviesapp.core.ext.isNetworkAvailable
-import costalonga.tarsila.moviesapp.movie.ui.MainViewModel
+import costalonga.tarsila.moviesapp.movie.ui.detail.DetailViewModel
+import costalonga.tarsila.moviesapp.movie.ui.detail.compose.DetailScreen
+import costalonga.tarsila.moviesapp.movie.ui.main.MainViewModel
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.MainScreen
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.MainScreenTopAppBar
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.MoviesMainScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -47,6 +52,7 @@ fun MoviesApp() {
     val lazyColumnState = rememberLazyListState()
 
     val viewModel = hiltViewModel<MainViewModel>()
+    val detailViewModel = hiltViewModel<DetailViewModel>()
 
     var showAsVerticalList by remember { mutableStateOf(true) }
 
@@ -103,12 +109,12 @@ fun MoviesApp() {
                 )
             }
 
-            /*            composable<DetailScreen> {
-                            MovieDetailScreen()
-                        }*/
+            composable<DetailScreen> {
+                DetailScreen()
+                detailViewModel.toString()
+            }
         }
     }
-
 }
 
 @Composable

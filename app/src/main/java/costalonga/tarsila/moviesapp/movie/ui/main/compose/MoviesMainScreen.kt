@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class)
 
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -57,8 +57,8 @@ import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
-import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
-import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
+import costalonga.tarsila.moviesapp.movie.ui.main.MainScreenIntents
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.animation.PulseAnimation
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable

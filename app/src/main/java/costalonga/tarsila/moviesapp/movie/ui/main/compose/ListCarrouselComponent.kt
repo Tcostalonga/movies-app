@@ -1,4 +1,4 @@
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +37,7 @@ import coil.compose.AsyncImage
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
-import costalonga.tarsila.moviesapp.movie.ui.MainUiState
+import costalonga.tarsila.moviesapp.movie.ui.main.MainUiState
 import kotlin.math.absoluteValue
 import kotlinx.coroutines.flow.emptyFlow
 
