@@ -1,5 +1,6 @@
 package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,10 +30,13 @@ fun MovieItem(
     title: String,
     year: String,
     posterUrl: String,
+    onMovieItemClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onMovieItemClick() },
         elevation = CardDefaults.cardElevation(MoviesTheme.spacing.dp2),
         shape = MoviesTheme.shapes.large,
         colors = CardDefaults.cardColors(

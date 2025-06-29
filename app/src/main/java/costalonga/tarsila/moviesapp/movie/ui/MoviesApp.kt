@@ -1,138 +1,41 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package costalonga.tarsila.moviesapp.movie.ui
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.paging.compose.collectAsLazyPagingItems
-import costalonga.tarsila.moviesapp.core.ext.isNetworkAvailable
-import costalonga.tarsila.moviesapp.movie.ui.detail.DetailViewModel
-import costalonga.tarsila.moviesapp.movie.ui.detail.compose.DetailScreen
+import androidx.navigation.toRoute
+import costalonga.tarsila.moviesapp.movie.ui.detail.compose.DetailScreenRoot
+import costalonga.tarsila.moviesapp.movie.ui.detail.compose.DetailScreenRoute
 import costalonga.tarsila.moviesapp.movie.ui.main.MainViewModel
-import costalonga.tarsila.moviesapp.movie.ui.main.compose.MainScreen
-import costalonga.tarsila.moviesapp.movie.ui.main.compose.MainScreenTopAppBar
-import costalonga.tarsila.moviesapp.movie.ui.main.compose.MoviesMainScreen
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.MainScreenRoute
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.MoviesMainRoot
 
 @Composable
 fun MoviesApp() {
     val navController = rememberNavController()
-    val backStack = navController.currentBackStackEntryAsState()
-    val scope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
 
-    val lazyColumnState = rememberLazyListState()
+    NavHost(navController = navController, startDestination = MainScreenRoute) {
 
-    val viewModel = hiltViewModel<MainViewModel>()
-    val detailViewModel = hiltViewModel<DetailViewModel>()
+        composable<MainScreenRoute> {
+            val viewModel = hiltViewModel<MainViewModel>()
 
-    var showAsVerticalList by remember { mutableStateOf(true) }
-
-    val shouldShowFab by remember {
-        derivedStateOf {
-            lazyColumnState.firstVisibleItemIndex > 20
-        }
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        val lifecycleObserver = object : DefaultLifecycleObserver {
-            override fun onCreate(owner: LifecycleOwner) {
-                super.onCreate(owner)
-                if (context.isNetworkAvailable()) viewModel.clearDatabase()
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
-        }
-    }
-
-    Scaffold(
-        modifier = Modifier,
-        topBar = {
-            MainScreenTopAppBar(
-                showAsVerticalList = showAsVerticalList,
-                onShowAsVerticalListChange = { showAsVerticalList = it }
+            MoviesMainRoot(
+                viewModel = viewModel,
+                onMovieItemClick = {
+                    navController.navigate(DetailScreenRoute(it))
+                }
             )
-        },
-        floatingActionButton = {
-            ScrollToTopFab(shouldShowFab, scope, lazyColumnState)
-        }
-    )
-    { paddingValues ->
-        val uiState by viewModel.movies.collectAsStateWithLifecycle()
-
-        val moviesPagingData = if (uiState.showInitialState && context.isNetworkAvailable()) {
-            null
-        } else {
-            viewModel.getCachedMovies.collectAsLazyPagingItems()
         }
 
-        NavHost(navController = navController, startDestination = MainScreen) {
-            composable<MainScreen> {
-                MoviesMainScreen(
-                    showAsVerticalList,
-                    moviesPagingData,
-                    uiState.searchParams,
-                    lazyColumnState,
-                    viewModel::onIntent,
-                    modifier = Modifier.padding(paddingValues)
-                )
-            }
-
-            composable<DetailScreen> {
-                DetailScreen()
-                detailViewModel.toString()
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScrollToTopFab(
-    shouldShowFab: Boolean,
-    scope: CoroutineScope,
-    lazyColumnState: LazyListState
-) {
-    if (shouldShowFab) {
-        FloatingActionButton(
-            onClick = {
-                scope.launch { lazyColumnState.animateScrollToItem(0) }
-            }
-        ) {
-            Icon(
-                Icons.Default.KeyboardArrowUp,
-                contentDescription = "Scroll to the list top",
-            )
+        composable<DetailScreenRoute> { args ->
+            val movieId = args.toRoute<DetailScreenRoute>().id
+            DetailScreenRoot(
+                movieId,
+                onBackClick = {
+                    navController.navigateUp()
+                })
         }
     }
 }
