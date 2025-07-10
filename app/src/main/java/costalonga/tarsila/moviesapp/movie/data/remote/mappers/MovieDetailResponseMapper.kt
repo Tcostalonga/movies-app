@@ -8,11 +8,14 @@ internal fun MovieDetailResponse.toDomain() = MovieDetail(
     year = year,
     released = released,
     runtime = runtime,
-    genre = genre,
+    genre = mapToListOfGenres(genre),
     director = director,
     actors = actors,
     plot = plot,
+    country = country,
     imdbID = imdbID,
-    poster = poster
-
+    poster = poster,
+    imdbRating = imdbRating,
 )
+
+private fun mapToListOfGenres(genre: String): List<String> = genre.trim().split(",")

@@ -5,10 +5,12 @@ data class MovieDetail(
     val year: String = "",
     val released: String = "",
     val runtime: String = "",
-    val genre: String = "",
+    val genre: List<String> = emptyList(),
     val director: String = "",
     val actors: String = "",
     val plot: String = "",
+    val country: String = "",
     val imdbID: String = "",
+    val imdbRating: String = "",
     val poster: String = "",
 )
