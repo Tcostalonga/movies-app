@@ -2,9 +2,6 @@
 
 package costalonga.tarsila.moviesapp.movie.ui.detail.compose
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -14,37 +11,32 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -54,8 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import costalonga.tarsila.moviesapp.R
-import costalonga.tarsila.moviesapp.core.compose.CollapsingHeaderBox
-import costalonga.tarsila.moviesapp.core.compose.rememberCollapsingHeaderConnection
 import costalonga.tarsila.moviesapp.core.compose.removeHorizontalPadding
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
@@ -85,191 +75,123 @@ fun DetailScreenRoot(movieId: String, onBackClick: () -> Unit) {
 private fun DetailScreen(uiState: DetailUiState, onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     Scaffold(
         modifier = modifier,
-        contentWindowInsets = WindowInsets(0),
+
+        /*
+
+                     SMALL PART HEADER
+                     Row(
+                             modifier = Modifier
+                                 .padding(MoviesTheme.spacing.dp16)
+                                 .fillMaxWidth()
+                                 .align(Alignment.BottomStart)
+                         ) {
+                             AsyncImage(
+                                 model = uiState.movieDetail.poster,
+                                 contentDescription = "Small movie poster image",
+                                 modifier = Modifier
+                                     .width(100.dp)
+                                     .height(120.dp)
+                                     .clip(MoviesTheme.shapes.small),
+                                 placeholder = painterResource(R.drawable.avatar),
+                                 contentScale = ContentScale.Fit,
+                             )
+                             Text(
+                                 modifier = Modifier
+                                     .align(Alignment.CenterVertically)
+                                     .padding(MoviesTheme.spacing.dp16),
+                                 text = uiState.movieDetail.title,
+                                 style = MoviesTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                             )
+                         }*/
+
     ) { innerPadding ->
-        val collapsingHeader = rememberCollapsingHeaderConnection()
         val scope = rememberCoroutineScope()
         val scrollState = rememberScrollState()
         val movieDetail = uiState.movieDetail
-        /*        val isFirstItemVisible by remember {
-                    derivedStateOf {
-                        scrollState.firstVisibleItemIndex == 0 &&
-                                scrollState.firstVisibleItemScrollOffset == 0
-                    }
-                }*/
 
-        val isToolbarVisible by remember {
-            derivedStateOf {
-                collapsingHeader.currentAlpha == 1f
-            }
+
+        val movie = uiState.movieDetail
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(innerPadding)
+                .padding(horizontal = MoviesTheme.spacing.dp18)
+                .fillMaxSize()
+        ) {
+/*
+            SectionPosterAndTitle(
+                poster = uiState.movieDetail.poster,
+                title = uiState.movieDetail.title,
+                onBackClick = onBackClick
+            )
+*/
+
+            SectionGenres(movie.genre)
+
+            Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+
+            SectionBasicStatistics(movie)
+
+            Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+
+            SectionResume(movie)
         }
-        collapsingHeader.canScrollHeader = true
-        val statusBarGradientColors = listOf(Color(0x99000000), Color(0x00ffffff))
-        val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    }
+}
 
-        CollapsingHeaderBox(
-            collapsingHeader = collapsingHeader,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        AnimatedVisibility(isToolbarVisible, enter = fadeIn(), exit = fadeOut()) {
-                            if (isToolbarVisible) Text(movieDetail.title)
+@Composable
+private fun SectionPosterAndTitle(modifier: Modifier = Modifier, onBackClick: () -> Unit, poster: String, title: String) {
+    val posterGradientColors = listOf(
+        Color(0x00121212),
+        Color(0x81121212),
+        Color(0xB7000000),
+        Color(0xF0121212),
+        Color(0xFF121212)
+    )
 
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                    ),
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                onBackClick()
-                            },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = Color.White,
-                            ),
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = null,
-                            )
-                        }
-                    },
-                    modifier = Modifier.drawBehind {
-                        drawRect(Color.White.copy(alpha = collapsingHeader.currentAlpha))
-                    },
-                )
+    Box(
+        modifier = modifier.removeHorizontalPadding(MoviesTheme.spacing.dp18)
+    ) {
+        AsyncImage(
+            model = poster,
+            contentDescription = "Movie Poster Image",
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 500.dp),
+            placeholder = painterResource(R.drawable.avatar),
+            contentScale = ContentScale.Crop,
+        )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Brush.verticalGradient(colors = statusBarGradientColors))
-                        .height(statusBarHeight),
-
-                    )
+        IconButton(
+            onClick = {
+                onBackClick()
             },
-            header = {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                ) {
-                    AsyncImage(
-                        model = movieDetail.poster,
-                        contentDescription = "Movie Poster Image",
-                        //    modifier = Modifier.size(200.dp),
-                        contentScale = ContentScale.FillBounds
-                    )
-                    Text("BANNER")
+            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent.copy(alpha = 0.1f))
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                modifier = Modifier.size(MoviesTheme.spacing.dp32),
+                tint = Color.White,
+                contentDescription = null,
+            )
+        }
 
-                    AsyncImage(
-                        model = movieDetail.poster,
-                        contentDescription = null,
-                        modifier = Modifier.size(60.dp),
-                        contentScale = ContentScale.FillBounds
-                    )
-                }
-            },
-            content = {
-                val movie = uiState.movieDetail
-                Column(
-                    modifier = Modifier
-                        .verticalScroll(scrollState)
-                        .padding(horizontal = MoviesTheme.spacing.dp18)
-                ) {
-
-                    MovieGenres(movie.genre)
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
-
-                    Row(
-                        modifier = Modifier
-                            .removeHorizontalPadding(MoviesTheme.spacing.dp18)
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp16, Alignment.CenterHorizontally)
-                    ) {
-                        repeat(4) { index ->
-                            val (label, value) = when (index) {
-                                0 -> Pair(R.string.movie_detail_header_imdb_rating, "${movie.imdbRating}/10")
-                                1 -> Pair(R.string.movie_detail_header_runtime, movie.runtime)
-                                2 -> Pair(R.string.movie_detail_header_country, movie.country)
-                                3 -> Pair(R.string.movie_detail_header_released, movie.released)
-                                else -> Pair(0, "")
-                            }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    text = stringResource(label),
-                                    style = MoviesTheme.typography.bodySmall.copy(
-                                        fontSize = 9.sp, fontWeight = FontWeight.Bold,
-                                        color = MoviesTheme.colors.onBackground.copy(alpha = 0.6f)
-                                    ),
-                                )
-                                Text(
-                                    text = value,
-                                    style = MoviesTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                )
-
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
-
-                    Text(
-                        text = stringResource(R.string.about_the_movie),
-                        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
-
-                    Text(
-                        text = movie.plot,
-                        style = MoviesTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
-
-                    Text(
-                        text = stringResource(R.string.director),
-                        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
-
-                    Text(
-                        text = movie.director,
-                        style = MoviesTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
-
-                    Text(
-                        text = stringResource(R.string.actors),
-                        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-
-                    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
-
-                    Text(
-                        text = movie.actors,
-                        style = MoviesTheme.typography.bodyMedium
-                    )
-                }
-            },
-            modifier = Modifier.padding(innerPadding),
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(colors = posterGradientColors))
+                .height(100.dp),
         )
     }
 }
 
 @Composable
-fun MovieGenres(genres: List<String>) {
+private fun SectionGenres(genres: List<String>) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp8, Alignment.CenterHorizontally),
         modifier = Modifier
+            .padding(top = MoviesTheme.spacing.dp16)
             .removeHorizontalPadding(MoviesTheme.spacing.dp18)
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
@@ -287,6 +209,86 @@ fun MovieGenres(genres: List<String>) {
             }
         }
     }
+}
+
+@Composable
+private fun SectionBasicStatistics(movie: MovieDetail) {
+    Row(
+        modifier = Modifier
+            .removeHorizontalPadding(MoviesTheme.spacing.dp18)
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp16, Alignment.CenterHorizontally)
+    ) {
+        repeat(4) { index ->
+            val (label, value) = when (index) {
+                0 -> Pair(R.string.movie_detail_header_imdb_rating, "${movie.imdbRating}/10")
+                1 -> Pair(R.string.movie_detail_header_runtime, movie.runtime)
+                2 -> Pair(R.string.movie_detail_header_country, movie.country)
+                3 -> Pair(R.string.movie_detail_header_released, movie.released)
+                else -> Pair(0, "")
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(label),
+                    style = MoviesTheme.typography.bodySmall.copy(
+                        fontSize = 9.sp, fontWeight = FontWeight.Bold,
+                        color = MoviesTheme.colors.onBackground.copy(alpha = 0.6f)
+                    ),
+                )
+                Text(
+                    text = value,
+                    style = MoviesTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                )
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionResume(movie: MovieDetail) {
+    Text(
+        text = stringResource(R.string.about_the_movie),
+        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+    )
+
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
+
+    Text(
+        text = movie.plot,
+        style = MoviesTheme.typography.bodyMedium
+    )
+
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+
+    Text(
+        text = stringResource(R.string.director),
+        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+    )
+
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
+
+    Text(
+        text = movie.director,
+        style = MoviesTheme.typography.bodyMedium
+    )
+
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+
+    Text(
+        text = stringResource(R.string.actors),
+        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+    )
+
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
+
+    Text(
+        text = movie.actors,
+        style = MoviesTheme.typography.bodyMedium
+    )
 }
 
 @PreviewLightDark
