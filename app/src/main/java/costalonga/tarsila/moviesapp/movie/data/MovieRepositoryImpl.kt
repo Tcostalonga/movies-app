@@ -52,7 +52,7 @@ class MovieRepositoryImpl @Inject constructor(
     override suspend fun getMovieById(imdbID: String): MovieDetail {
         return withContext(Dispatchers.IO) {
             try {
-                movieApi.getMovieById(imdbID, Plot.SHORT.name).toDomain()
+                movieApi.getMovieById(imdbID, Plot.FULL.name).toDomain()
             } catch (e: Exception) {
                 Log.e("MovieRepositoryImpl", "Error fetching movie by id: Cause: ${e.cause} --- Message: ${e.message}")
                 throw e
