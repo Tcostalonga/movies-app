@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     implementation(libs.coil)
+    implementation(libs.coil.compose)
     implementation(libs.kotlin.datetime)
 
     //Paging

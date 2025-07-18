@@ -260,7 +260,7 @@ fun MoviesMainScreen(
             when (movies.loadState.refresh) {
                 is LoadState.Loading -> {
                     containerWrapper {
-                        PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
+                        PulseAnimation(Modifier.size(60.dp))
                     }
                 }
 

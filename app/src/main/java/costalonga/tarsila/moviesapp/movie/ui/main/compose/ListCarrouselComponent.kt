@@ -33,7 +33,7 @@ import androidx.compose.ui.util.lerp
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
