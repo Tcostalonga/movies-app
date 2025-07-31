@@ -2,6 +2,8 @@
 
 package costalonga.tarsila.moviesapp.movie.ui.detail.compose
 
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -11,12 +13,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,33 +33,45 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import costalonga.tarsila.moviesapp.R
+import costalonga.tarsila.moviesapp.core.compose.CollapsingHeaderBox
+import costalonga.tarsila.moviesapp.core.compose.rememberCollapsingHeaderConnection
 import costalonga.tarsila.moviesapp.core.compose.removeHorizontalPadding
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.MovieDetail
 import costalonga.tarsila.moviesapp.movie.ui.detail.DetailUiState
 import costalonga.tarsila.moviesapp.movie.ui.detail.DetailViewModel
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.animation.PulseAnimation
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -64,7 +84,6 @@ fun DetailScreenRoot(movieId: String, onBackClick: () -> Unit) {
     LaunchedEffect(true) {
         viewModel.getMovieById(movieId)
     }
-
     DetailScreen(
         uiState = uiState,
         onBackClick = onBackClick
@@ -73,74 +92,180 @@ fun DetailScreenRoot(movieId: String, onBackClick: () -> Unit) {
 
 @Composable
 private fun DetailScreen(uiState: DetailUiState, onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+
+    /*
+
+                         SMALL PART HEADER
+                         Row(
+                                 modifier = Modifier
+                                     .padding(MoviesTheme.spacing.dp16)
+                                     .fillMaxWidth()
+                                     .align(Alignment.BottomStart)
+                             ) {
+                                 AsyncImage(
+                                     model = uiState.movieDetail.poster,
+                                     contentDescription = "Small movie poster image",
+                                     modifier = Modifier
+                                         .width(100.dp)
+                                         .height(120.dp)
+                                         .clip(MoviesTheme.shapes.small),
+                                     placeholder = painterResource(R.drawable.avatar),
+                                     contentScale = ContentScale.Fit,
+                                 )
+                                 Text(
+                                     modifier = Modifier
+                                         .align(Alignment.CenterVertically)
+                                         .padding(MoviesTheme.spacing.dp16),
+                                     text = uiState.movieDetail.title,
+                                     style = MoviesTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                                 )
+                             }*/
+
+
     Scaffold(
         modifier = modifier,
-
-        /*
-
-                     SMALL PART HEADER
-                     Row(
-                             modifier = Modifier
-                                 .padding(MoviesTheme.spacing.dp16)
-                                 .fillMaxWidth()
-                                 .align(Alignment.BottomStart)
-                         ) {
-                             AsyncImage(
-                                 model = uiState.movieDetail.poster,
-                                 contentDescription = "Small movie poster image",
-                                 modifier = Modifier
-                                     .width(100.dp)
-                                     .height(120.dp)
-                                     .clip(MoviesTheme.shapes.small),
-                                 placeholder = painterResource(R.drawable.avatar),
-                                 contentScale = ContentScale.Fit,
-                             )
-                             Text(
-                                 modifier = Modifier
-                                     .align(Alignment.CenterVertically)
-                                     .padding(MoviesTheme.spacing.dp16),
-                                 text = uiState.movieDetail.title,
-                                 style = MoviesTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color.White)
-                             )
-                         }*/
-
+        contentWindowInsets = WindowInsets(0),
     ) { innerPadding ->
         val scope = rememberCoroutineScope()
-        val scrollState = rememberScrollState()
+        val collapsingHeader = rememberCollapsingHeaderConnection()
+        val scrollState = rememberLazyListState()
+
+        val isToolbarVisible by remember {
+            derivedStateOf {
+                collapsingHeader.currentAlpha == 1f
+            }
+        }
+
+        val view = LocalView.current
+
+        if (view.isInEditMode.not() && isSystemInDarkTheme().not()) {
+            LocalActivity.current?.window?.let { window ->
+                WindowCompat.getInsetsController(window, view)
+                    .isAppearanceLightStatusBars = isToolbarVisible
+            }
+        }
+
+        val isFirstItemVisible by remember {
+            derivedStateOf {
+                scrollState.firstVisibleItemIndex == 0 &&
+                        scrollState.firstVisibleItemScrollOffset == 0
+            }
+        }
+        collapsingHeader.canScrollHeader = isFirstItemVisible
+
+        val statusBarGradientColors = listOf(Color(0x99000000), Color(0x00ffffff))
+        val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+
         val movieDetail = uiState.movieDetail
 
+        when {
+            uiState.isLoading ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PulseAnimation(
+                        modifier = Modifier
+                            .size(60.dp)
+                    )
+                }
 
-        val movie = uiState.movieDetail
-        Column(
-            modifier = Modifier
-                .verticalScroll(scrollState)
-                .padding(innerPadding)
-                .padding(horizontal = MoviesTheme.spacing.dp18)
-                .fillMaxSize()
-        ) {
-/*
-            SectionPosterAndTitle(
-                poster = uiState.movieDetail.poster,
-                title = uiState.movieDetail.title,
-                onBackClick = onBackClick
-            )
-*/
+            uiState.isError ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    NotFoundAnimation(modifier = Modifier.size(100.dp))
+                }
 
-            SectionGenres(movie.genre)
+            else ->
+                CollapsingHeaderBox(
+                    collapsingHeader = collapsingHeader,
+                    modifier = Modifier.padding(innerPadding),
+                    topBar = {
+                        val topBarBackgroundColor = MoviesTheme.colors.background
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    text = movieDetail.title,
+                                    color = LocalContentColor.current.copy(alpha = collapsingHeader.currentAlpha)
+                                )
 
-            Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+                            },
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = {
+                                        onBackClick()
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = topBarBackgroundColor.copy(alpha = 0.5f),
+                                    ),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.Transparent,
+                            ),
+                            modifier = Modifier.drawBehind {
+                                drawRect(topBarBackgroundColor.copy(alpha = collapsingHeader.currentAlpha))
+                            },
+                        )
+                        Box(
+                            modifier = Modifier
+                                .alpha(1f - collapsingHeader.currentAlpha)
+                                .fillMaxWidth()
+                                .background(Brush.verticalGradient(colors = statusBarGradientColors))
+                                .height(statusBarHeight),
+                        )
+                    },
+                    header = {
+                        SectionPosterAndTitle(
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .removeHorizontalPadding(MoviesTheme.spacing.dp18),
+                            poster = uiState.movieDetail.poster,
+                            title = uiState.movieDetail.title,
+                        )
+                    },
+                    content = {
+                        LazyColumn(
+                            state = scrollState,
+                            contentPadding = WindowInsets.navigationBars.asPaddingValues(),
+                            modifier = Modifier
+                                .padding(horizontal = MoviesTheme.spacing.dp18)
+                        ) {
+                            item {
+                                SectionGenres(movieDetail.genre)
+                                Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+                            }
 
-            SectionBasicStatistics(movie)
+                            item {
+                                SectionBasicStatistics(movieDetail)
+                                Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+                            }
 
-            Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
-
-            SectionResume(movie)
+                            item {
+                                SectionResume(movieDetail)
+                                Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+                            }
+                        }
+                    })
         }
     }
 }
 
 @Composable
-private fun SectionPosterAndTitle(modifier: Modifier = Modifier, onBackClick: () -> Unit, poster: String, title: String) {
+private fun SectionPosterAndTitle(
+    modifier: Modifier = Modifier, poster: String, title: String
+) {
     val posterGradientColors = listOf(
         Color(0x00121212),
         Color(0x81121212),
@@ -148,41 +273,46 @@ private fun SectionPosterAndTitle(modifier: Modifier = Modifier, onBackClick: ()
         Color(0xF0121212),
         Color(0xFF121212)
     )
+    val posterAsyncPainter = rememberAsyncImagePainter(poster)
+    val posterAsyncState by posterAsyncPainter.state.collectAsStateWithLifecycle()
 
     Box(
-        modifier = modifier.removeHorizontalPadding(MoviesTheme.spacing.dp18)
+        modifier = modifier
+            .height(500.dp)
+            .fillMaxWidth(),
     ) {
-        AsyncImage(
-            model = poster,
-            contentDescription = "Movie Poster Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 500.dp),
-            placeholder = painterResource(R.drawable.avatar),
-            contentScale = ContentScale.Crop,
-        )
+        when (posterAsyncState) {
+            is AsyncImagePainter.State.Loading -> {
+                PulseAnimation(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .align(Alignment.Center)
+                )
+            }
 
-        IconButton(
-            onClick = {
-                onBackClick()
-            },
-            colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Transparent.copy(alpha = 0.1f))
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                modifier = Modifier.size(MoviesTheme.spacing.dp32),
-                tint = Color.White,
-                contentDescription = null,
-            )
+            is AsyncImagePainter.State.Success -> {
+                Image(
+                    painter = posterAsyncPainter,
+                    contentDescription = "Movie Poster Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 500.dp),
+                    contentScale = ContentScale.Crop,
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(colors = posterGradientColors))
+                        .height(100.dp),
+                )
+            }
+
+            is AsyncImagePainter.State.Error ->
+                TODO("Add error placeholder")
+
+            else -> Unit
         }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(Brush.verticalGradient(colors = posterGradientColors))
-                .height(100.dp),
-        )
     }
 }
 
@@ -297,6 +427,7 @@ private fun DetailScreenPreview() {
     MoviesAppTheme {
         DetailScreen(
             DetailUiState(
+                isError = true,
                 movieDetail = MovieDetail(
                     title = "Ad Astra",
                     year = "2019",

@@ -75,6 +75,7 @@ dependencies {
 
     implementation(libs.coil)
     implementation(libs.coil.compose)
+    implementation(libs.coil.network)
     implementation(libs.kotlin.datetime)
 
     //Paging

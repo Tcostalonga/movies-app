@@ -18,7 +18,7 @@ class DetailViewModel @Inject constructor(private val movieRepository: MovieRepo
 
     fun getMovieById(id: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, isError = false) }
             runCatching {
                 movieRepository.getMovieById(id)
             }
@@ -26,7 +26,8 @@ class DetailViewModel @Inject constructor(private val movieRepository: MovieRepo
                     _uiState.update {
                         it.copy(
                             movieDetail = result,
-                            isLoading = false
+                            isLoading = false,
+                            isError = false,
                         )
                     }
                 }

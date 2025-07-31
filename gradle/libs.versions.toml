@@ -50,6 +50,7 @@ retrofit-converter-kotlinserialization = { group = "com.squareup.retrofit2", nam
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 coil = { group = "io.coil-kt.coil3", name = "coil", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 kotlin-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlin-datetime" }
 paging-runtime = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
