@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -47,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import costalonga.tarsila.moviesapp.R
@@ -92,36 +95,6 @@ fun DetailScreenRoot(movieId: String, onBackClick: () -> Unit) {
 
 @Composable
 private fun DetailScreen(uiState: DetailUiState, onBackClick: () -> Unit, modifier: Modifier = Modifier) {
-
-    /*
-
-                         SMALL PART HEADER
-                         Row(
-                                 modifier = Modifier
-                                     .padding(MoviesTheme.spacing.dp16)
-                                     .fillMaxWidth()
-                                     .align(Alignment.BottomStart)
-                             ) {
-                                 AsyncImage(
-                                     model = uiState.movieDetail.poster,
-                                     contentDescription = "Small movie poster image",
-                                     modifier = Modifier
-                                         .width(100.dp)
-                                         .height(120.dp)
-                                         .clip(MoviesTheme.shapes.small),
-                                     placeholder = painterResource(R.drawable.avatar),
-                                     contentScale = ContentScale.Fit,
-                                 )
-                                 Text(
-                                     modifier = Modifier
-                                         .align(Alignment.CenterVertically)
-                                         .padding(MoviesTheme.spacing.dp16),
-                                     text = uiState.movieDetail.title,
-                                     style = MoviesTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color.White)
-                                 )
-                             }*/
-
-
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets(0),
@@ -218,6 +191,7 @@ private fun DetailScreen(uiState: DetailUiState, onBackClick: () -> Unit, modifi
                                 drawRect(topBarBackgroundColor.copy(alpha = collapsingHeader.currentAlpha))
                             },
                         )
+
                         Box(
                             modifier = Modifier
                                 .alpha(1f - collapsingHeader.currentAlpha)
@@ -227,13 +201,25 @@ private fun DetailScreen(uiState: DetailUiState, onBackClick: () -> Unit, modifi
                         )
                     },
                     header = {
-                        SectionPosterAndTitle(
-                            modifier = Modifier
-                                .verticalScroll(rememberScrollState())
-                                .removeHorizontalPadding(MoviesTheme.spacing.dp18),
-                            poster = uiState.movieDetail.poster,
-                            title = uiState.movieDetail.title,
-                        )
+                        Box(
+                            modifier = modifier
+                        ) {
+                            SectionPosterAndTitle(
+                                modifier = Modifier
+                                    .verticalScroll(rememberScrollState())
+                                    .removeHorizontalPadding(MoviesTheme.spacing.dp18),
+                                poster = uiState.movieDetail.poster,
+                            )
+
+                            SectionMiniPosterAndTitle(
+                                modifier = Modifier
+                                    .padding(MoviesTheme.spacing.dp16)
+                                    .align(Alignment.BottomStart),
+                                poster = uiState.movieDetail.poster,
+                                title = uiState.movieDetail.title
+                            )
+
+                        }
                     },
                     content = {
                         LazyColumn(
@@ -263,8 +249,34 @@ private fun DetailScreen(uiState: DetailUiState, onBackClick: () -> Unit, modifi
 }
 
 @Composable
+private fun SectionMiniPosterAndTitle(modifier: Modifier, poster: String, title: String) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp16)
+    ) {
+
+        AsyncImage(
+            model = poster,
+            contentDescription = "Small movie poster image",
+            modifier = Modifier
+                .clip(MoviesTheme.shapes.small)
+                .width(90.dp)
+                .height(120.dp),
+            contentScale = ContentScale.Crop,
+        )
+
+        Text(
+            modifier = Modifier,
+            text = title,
+            style = MoviesTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = Color.White)
+        )
+    }
+}
+
+@Composable
 private fun SectionPosterAndTitle(
-    modifier: Modifier = Modifier, poster: String, title: String
+    modifier: Modifier = Modifier, poster: String
 ) {
     val posterGradientColors = listOf(
         Color(0x00121212),
@@ -304,7 +316,7 @@ private fun SectionPosterAndTitle(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .background(Brush.verticalGradient(colors = posterGradientColors))
-                        .height(100.dp),
+                        .height(200.dp),
                 )
             }
 
@@ -350,12 +362,11 @@ private fun SectionBasicStatistics(movie: MovieDetail) {
             .horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(MoviesTheme.spacing.dp16, Alignment.CenterHorizontally)
     ) {
-        repeat(4) { index ->
+        repeat(3) { index ->
             val (label, value) = when (index) {
                 0 -> Pair(R.string.movie_detail_header_imdb_rating, "${movie.imdbRating}/10")
                 1 -> Pair(R.string.movie_detail_header_runtime, movie.runtime)
-                2 -> Pair(R.string.movie_detail_header_country, movie.country)
-                3 -> Pair(R.string.movie_detail_header_released, movie.released)
+                2 -> Pair(R.string.movie_detail_header_released, movie.released)
                 else -> Pair(0, "")
             }
             Column(
@@ -419,6 +430,19 @@ private fun SectionResume(movie: MovieDetail) {
         text = movie.actors,
         style = MoviesTheme.typography.bodyMedium
     )
+
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp16))
+
+    Text(
+        text = stringResource(R.string.country),
+        style = MoviesTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+    )
+    Spacer(modifier = Modifier.size(MoviesTheme.spacing.dp4))
+
+    Text(
+        text = movie.country,
+        style = MoviesTheme.typography.bodyMedium
+    )
 }
 
 @PreviewLightDark
@@ -427,7 +451,6 @@ private fun DetailScreenPreview() {
     MoviesAppTheme {
         DetailScreen(
             DetailUiState(
-                isError = true,
                 movieDetail = MovieDetail(
                     title = "Ad Astra",
                     year = "2019",
