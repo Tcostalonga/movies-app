@@ -320,9 +320,6 @@ private fun SectionPosterAndTitle(
                 )
             }
 
-            is AsyncImagePainter.State.Error ->
-                TODO("Add error placeholder")
-
             else -> Unit
         }
     }

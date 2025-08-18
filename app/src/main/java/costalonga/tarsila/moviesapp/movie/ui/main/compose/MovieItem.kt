@@ -16,12 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import costalonga.tarsila.moviesapp.R
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 
 
@@ -51,7 +49,6 @@ fun MovieItem(
             AsyncImage(
                 model = posterUrl,
                 contentDescription = "Movie Poster Image",
-                error = painterResource(R.drawable.ic_image_not_found),
                 modifier = Modifier
                     .size(width = 100.dp, height = 130.dp)
                     .clip(RoundedCornerShape(MoviesTheme.spacing.dp8)),
