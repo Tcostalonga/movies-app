@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.compose.navigation)
+    implementation(libs.androidx.palette)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,6 +74,8 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     implementation(libs.coil)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
     implementation(libs.kotlin.datetime)
 
     //Paging
@@ -83,4 +86,8 @@ dependencies {
     implementation(libs.room.core)
     implementation(libs.room.paging)
     ksp(libs.room.compiler)
+
+    //Compose
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.foundation.layout)
 }

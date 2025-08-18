@@ -1,5 +1,6 @@
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import costalonga.tarsila.moviesapp.R
+import coil3.compose.AsyncImage
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 
 
@@ -29,10 +28,13 @@ fun MovieItem(
     title: String,
     year: String,
     posterUrl: String,
+    onMovieItemClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onMovieItemClick() },
         elevation = CardDefaults.cardElevation(MoviesTheme.spacing.dp2),
         shape = MoviesTheme.shapes.large,
         colors = CardDefaults.cardColors(
@@ -47,7 +49,6 @@ fun MovieItem(
             AsyncImage(
                 model = posterUrl,
                 contentDescription = "Movie Poster Image",
-                error = painterResource(R.drawable.ic_image_not_found),
                 modifier = Modifier
                     .size(width = 100.dp, height = 130.dp)
                     .clip(RoundedCornerShape(MoviesTheme.spacing.dp8)),

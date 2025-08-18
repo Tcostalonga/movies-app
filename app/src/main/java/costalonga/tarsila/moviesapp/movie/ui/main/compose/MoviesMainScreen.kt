@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalFoundationApi::class)
 
-package costalonga.tarsila.moviesapp.movie.ui.compose
+package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +20,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -29,16 +31,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -47,24 +52,98 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import costalonga.tarsila.moviesapp.R
+import costalonga.tarsila.moviesapp.core.ext.isNetworkAvailable
 import costalonga.tarsila.moviesapp.core.theme.MoviesAppTheme
 import costalonga.tarsila.moviesapp.core.theme.MoviesTheme
 import costalonga.tarsila.moviesapp.movie.domain.model.Movie
 import costalonga.tarsila.moviesapp.movie.domain.model.SearchParams
-import costalonga.tarsila.moviesapp.movie.ui.MainScreenIntents
-import costalonga.tarsila.moviesapp.movie.ui.compose.animation.PulseAnimation
+import costalonga.tarsila.moviesapp.movie.ui.main.MainScreenIntents
+import costalonga.tarsila.moviesapp.movie.ui.main.MainViewModel
+import costalonga.tarsila.moviesapp.movie.ui.main.compose.animation.PulseAnimation
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object MainScreen
+data object MainScreenRoute
+
+@Composable
+fun MoviesMainRoot(
+    viewModel: MainViewModel,
+    onMovieItemClick: (movieId: String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val context = LocalContext.current
+
+    val lazyColumnState = rememberLazyListState()
+
+    val uiState by viewModel.movies.collectAsStateWithLifecycle()
+
+    val moviesPagingData = if (uiState.showInitialState && context.isNetworkAvailable()) {
+        null
+    } else {
+        viewModel.getCachedMovies.collectAsLazyPagingItems()
+    }
+
+    var showAsVerticalList by remember { mutableStateOf(true) }
+
+    DisposableEffect(lifecycleOwner) {
+        val lifecycleObserver = object : DefaultLifecycleObserver {
+            override fun onCreate(owner: LifecycleOwner) {
+                super.onCreate(owner)
+                if (context.isNetworkAvailable()) viewModel.clearDatabase()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+
+    val shouldShowFab by remember {
+        derivedStateOf {
+            lazyColumnState.firstVisibleItemIndex > 20
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier,
+        topBar = {
+            MainScreenTopAppBar(
+                showAsVerticalList = showAsVerticalList,
+                onShowAsVerticalListChange = { showAsVerticalList = it }
+            )
+        },
+        floatingActionButton = {
+            ScrollToTopFab(shouldShowFab, scope, lazyColumnState)
+        }
+    )
+    { paddingValues ->
+
+        MoviesMainScreen(
+            showAsVerticalList,
+            moviesPagingData,
+            uiState.searchParams,
+            lazyColumnState,
+            viewModel::onIntent,
+            onMovieItemClick = onMovieItemClick,
+            modifier = Modifier.padding(paddingValues)
+        )
+    }
+}
 
 @Composable
 fun MoviesMainScreen(
@@ -73,6 +152,7 @@ fun MoviesMainScreen(
     searchParams: SearchParams,
     lazyColumnState: LazyListState,
     onIntent: (MainScreenIntents) -> Unit,
+    onMovieItemClick: (movieId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scope = rememberCoroutineScope()
@@ -180,7 +260,7 @@ fun MoviesMainScreen(
             when (movies.loadState.refresh) {
                 is LoadState.Loading -> {
                     containerWrapper {
-                        PulseAnimation(Modifier.size(60.dp), MoviesTheme.colors.outline)
+                        PulseAnimation(Modifier.size(60.dp))
                     }
                 }
 
@@ -197,13 +277,13 @@ fun MoviesMainScreen(
                 is LoadState.NotLoading -> {
                     if (movies.itemCount >= 1) {
                         if (showAsVerticalList) {
-                            verticalListComponent(movies)
+                            verticalListComponent(movies, onMovieItemClick)
                         } else {
                             if (lazyColumnState.firstVisibleItemIndex != 0 && lazyColumnState.firstVisibleItemScrollOffset != 0) {
                                 savedIndex = lazyColumnState.firstVisibleItemIndex
                                 savedOffset = lazyColumnState.firstVisibleItemScrollOffset
                             }
-                            carrouselListComponent(movies, pagerState)
+                            carrouselListComponent(movies, pagerState, onMovieItemClick)
                         }
                     }
                 }
@@ -225,28 +305,54 @@ private fun LazyListScope.containerWrapper(content: @Composable () -> Unit) {
     }
 }
 
-private fun LazyListScope.verticalListComponent(movies: LazyPagingItems<Movie>) {
+private fun LazyListScope.verticalListComponent(movies: LazyPagingItems<Movie>, onMovieItemClick: (movieId: String) -> Unit) {
     items(movies.itemCount, key = movies.itemKey { it.imdbID }) { index ->
         movies[index]?.let { movie ->
             MovieItem(
                 title = movie.title,
                 year = movie.year,
                 posterUrl = movie.poster,
+                onMovieItemClick = { onMovieItemClick(movie.imdbID) },
                 modifier = Modifier.padding(horizontal = MoviesTheme.spacing.dp18)
             )
         }
     }
 }
 
-private fun LazyListScope.carrouselListComponent(movies: LazyPagingItems<Movie>, pagerState: PagerState) {
+private fun LazyListScope.carrouselListComponent(
+    movies: LazyPagingItems<Movie>,
+    pagerState: PagerState,
+    onMovieItemClick: (movieId: String) -> Unit
+) {
     item {
         ListCarrouselComponent(
             movies,
             pagerState,
+            onMovieItemClick = { imdbID -> onMovieItemClick(imdbID) },
             modifier = Modifier
                 .fillMaxWidth()
                 .fillParentMaxHeight(0.8f)
         )
+    }
+}
+
+@Composable
+private fun ScrollToTopFab(
+    shouldShowFab: Boolean,
+    scope: CoroutineScope,
+    lazyColumnState: LazyListState
+) {
+    if (shouldShowFab) {
+        FloatingActionButton(
+            onClick = {
+                scope.launch { lazyColumnState.animateScrollToItem(0) }
+            }
+        ) {
+            Icon(
+                Icons.Default.KeyboardArrowUp,
+                contentDescription = "Scroll to the list top",
+            )
+        }
     }
 }
 
@@ -267,6 +373,7 @@ private fun MainScreenPreview(
                 searchParams = SearchParams(),
                 rememberLazyListState(),
                 onIntent = {},
+                {}
             )
         }
     }

@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 
-package costalonga.tarsila.moviesapp.movie.ui
+package costalonga.tarsila.moviesapp.movie.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

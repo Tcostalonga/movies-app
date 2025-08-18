@@ -1,4 +1,4 @@
-package costalonga.tarsila.moviesapp.movie.ui.compose.animation
+package costalonga.tarsila.moviesapp.movie.ui.main.compose.animation
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
