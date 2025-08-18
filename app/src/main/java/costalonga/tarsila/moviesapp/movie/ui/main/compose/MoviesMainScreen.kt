@@ -283,7 +283,7 @@ fun MoviesMainScreen(
                                 savedIndex = lazyColumnState.firstVisibleItemIndex
                                 savedOffset = lazyColumnState.firstVisibleItemScrollOffset
                             }
-                            carrouselListComponent(movies, pagerState)
+                            carrouselListComponent(movies, pagerState, onMovieItemClick)
                         }
                     }
                 }
@@ -319,11 +319,16 @@ private fun LazyListScope.verticalListComponent(movies: LazyPagingItems<Movie>, 
     }
 }
 
-private fun LazyListScope.carrouselListComponent(movies: LazyPagingItems<Movie>, pagerState: PagerState) {
+private fun LazyListScope.carrouselListComponent(
+    movies: LazyPagingItems<Movie>,
+    pagerState: PagerState,
+    onMovieItemClick: (movieId: String) -> Unit
+) {
     item {
         ListCarrouselComponent(
             movies,
             pagerState,
+            onMovieItemClick = { imdbID -> onMovieItemClick(imdbID) },
             modifier = Modifier
                 .fillMaxWidth()
                 .fillParentMaxHeight(0.8f)

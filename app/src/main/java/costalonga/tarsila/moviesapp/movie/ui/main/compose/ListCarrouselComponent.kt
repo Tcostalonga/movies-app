@@ -1,11 +1,12 @@
 package costalonga.tarsila.moviesapp.movie.ui.main.compose
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,7 +44,12 @@ import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ListCarrouselComponent(movies: LazyPagingItems<Movie>, pagerState: PagerState, modifier: Modifier = Modifier) {
+fun ListCarrouselComponent(
+    movies: LazyPagingItems<Movie>,
+    pagerState: PagerState,
+    onMovieItemClick: (imdbID: String) -> Unit,
+    modifier: Modifier = Modifier
+) {
 
     val pageOffset = pagerState.getOffsetDistanceInPages(pagerState.currentPage).absoluteValue
     val fling = PagerDefaults.flingBehavior(state = pagerState, pagerSnapDistance = PagerSnapDistance.atMost(5))
@@ -52,11 +58,13 @@ fun ListCarrouselComponent(movies: LazyPagingItems<Movie>, pagerState: PagerStat
         HorizontalPager(state = pagerState, flingBehavior = fling, modifier = modifier) { index ->
             val movie = movies[index]
             movie?.let {
-                MovieItemCarrousel(movie = movie, pageOffset, modifier = Modifier)
+                MovieItemCarrousel(
+                    movie = movie, pageOffset,
+                    modifier = Modifier.clickable { onMovieItemClick(movie.imdbID) })
             }
         }
 
-        FlowRow(
+        Row(
             Modifier
                 .fillMaxWidth()
                 .padding(top = MoviesTheme.spacing.dp40)
@@ -131,7 +139,8 @@ private fun ListCarrouselComponentPreview(
         Surface {
             ListCarrouselComponent(
                 movies = emptyFlow<PagingData<Movie>>().collectAsLazyPagingItems(),
-                rememberPagerState(pageCount = { 1 })
+                onMovieItemClick = {},
+                pagerState = rememberPagerState(pageCount = { 1 })
             )
         }
     }
